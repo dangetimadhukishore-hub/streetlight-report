@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CityCare – Greenfield Municipal Corporation (demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F3F4F6; --surface: #FFFFFF; --header: #14213D; --text: #1B2430; --muted: #5B6675;
+  --line: #C9D0D9; --accent: #F2A900; --accent-soft: rgba(242,169,0,.16); --btn: #14213D; --btn-text: #fff;
+  --focus: #1F6FEB; --error: #B3261E; --ok: #1E7B45; --lamp: #14213D; --sky: #DCE3EE;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-head: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0E1420; --surface:#172033; --header:#0A0F1A; --text:#E7ECF3; --muted:#9AA7B8; --line:#2E3C57;
+    --btn:#F2A900; --btn-text:#14213D; --focus:#6AA6FF; --error:#FF8A80; --ok:#6FD39A; --lamp:#9AA7B8; --sky:#1B2740;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#0E1420; --surface:#172033; --header:#0A0F1A; --text:#E7ECF3; --muted:#9AA7B8; --line:#2E3C57;
+  --btn:#F2A900; --btn-text:#14213D; --focus:#6AA6FF; --error:#FF8A80; --ok:#6FD39A; --lamp:#9AA7B8; --sky:#1B2740;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: inherit; }
+body { margin:0; background:var(--bg); color:var(--text); font-family:var(--font-body); font-size:17px; line-height:1.5; }
+a { color: inherit; }
+button, input, textarea { font: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+/* Header */
+.top { background: var(--header); color: #fff; border-bottom: 4px solid var(--accent); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; }
+.top-in { max-width: 980px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: auto; }
+.brand b { display: block; font-family: var(--font-head); font-size: 26px; line-height: 1; letter-spacing: .02em; }
+.brand small { display: block; font-size: 12.5px; color: #B9C4D4; line-height: 1.2; }
+nav { display: flex; gap: 4px; flex-wrap: wrap; }
+nav a { text-decoration: none; padding: 8px 12px; border-radius: 8px; font-weight: 500; font-size: 15.5px; color: #D5DCE8; }
+nav a[aria-current="page"] { background: rgba(255,255,255,.14); color: #fff; }
+nav a:hover { background: rgba(255,255,255,.08); }
+.bell { position: relative; background: transparent; border: 1px solid rgba(255,255,255,.3); color: #fff; width: 44px; height: 44px; border-radius: 10px; cursor: pointer; display: grid; place-items: center; }
+.badge { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--accent); color: #14213D; font-size: 12.5px; font-weight: 600; display: grid; place-items: center; }
+
+/* Notification drawer */
+.drawer { position: fixed; right: 12px; top: calc(env(safe-area-inset-top, 0px) + 74px); width: min(92vw, 360px); max-height: 70vh; overflow: auto; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 12px; z-index: 30; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+.drawer h2 { margin: 0; padding: 14px 16px; font-family: var(--font-head); font-size: 22px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+.drawer h2 button { font-size: 14px; background: none; border: 0; color: var(--muted); cursor: pointer; text-decoration: underline; }
+.note { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.note.unread { background: var(--accent-soft); }
+.note p { margin: 0; font-size: 15.5px; }
+.note small { color: var(--muted); }
+.drawer .empty { padding: 18px 16px; color: var(--muted); margin: 0; }
+
+/* Toasts */
+.toasts { position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 0px) + 84px); width: min(94vw, 420px); z-index: 40; display: grid; gap: 10px; }
+.toast { background: var(--surface); color: var(--text); border: 1px solid var(--line); border-left: 6px solid var(--accent); border-radius: 12px; padding: 14px 40px 14px 16px; box-shadow: 0 12px 32px rgba(0,0,0,.3); position: relative; animation: drop .25s ease-out; }
+.toast strong { display: block; font-family: var(--font-head); font-size: 20px; line-height: 1.15; }
+.toast p { margin: 4px 0 0; font-size: 15.5px; }
+.toast .x { position: absolute; top: 6px; right: 6px; width: 32px; height: 32px; border: 0; background: none; font-size: 22px; line-height: 1; color: var(--muted); cursor: pointer; }
+@keyframes drop { from { transform: translateY(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
+
+main { max-width: 980px; margin: 0 auto; padding: 22px 16px 40px; }
+h1, h2, h3 { font-family: var(--font-head); line-height: 1.08; margin: 0; }
+
+/* Home */
+.hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 24px; align-items: center; margin-bottom: 34px; }
+.hero h1 { font-size: clamp(38px, 7vw, 58px); font-weight: 700; margin-bottom: 14px; }
+.hero p { margin: 0 0 22px; color: var(--muted); max-width: 46ch; font-size: 18px; }
+.hero svg { width: 100%; height: auto; display: block; border-radius: 14px; background: var(--sky); }
+.cta-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn { display: inline-block; text-decoration: none; text-align: center; cursor: pointer; font-weight: 600; font-size: 17.5px; padding: 13px 20px; border: 0; border-radius: 12px; background: var(--btn); color: var(--btn-text); }
+.btn.ghost { background: transparent; color: var(--text); border: 1.5px solid var(--text); }
+.btn.block { display: block; width: 100%; font-size: 18px; padding: 15px 18px; }
+.steps { padding: 0; margin: 0; list-style: none; border-left: 3px solid var(--accent); }
+.steps li { padding: 4px 0 18px 20px; position: relative; }
+.steps li::before { content: ""; position: absolute; left: -10px; top: 9px; width: 17px; height: 17px; border-radius: 50%; background: var(--surface); border: 3px solid var(--accent); }
+.steps b { font-weight: 600; }
+.sec-title { font-size: 30px; margin-bottom: 16px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.about { color: var(--muted); }
+
+/* Card + forms */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; max-width: 520px; }
+.card-head { background: var(--header); color: #fff; padding: 20px 20px 16px; border-bottom: 4px solid var(--accent); }
+.card-head h1 { font-size: 32px; }
+.card-head p { margin: 6px 0 0; color: #C5CEDB; font-size: 15px; }
+.card-body { padding: 20px; }
+.plate { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: baseline; padding: 14px 16px; border: 2px solid var(--text); border-radius: 10px; margin: 0 0 22px; }
+.plate dt { color: var(--muted); font-size: 15px; }
+.plate dd { margin: 0; font-weight: 600; }
+.plate dd.id { font-family: var(--font-head); font-size: 28px; line-height: 1.1; letter-spacing: .02em; }
+fieldset { border: 0; padding: 0; margin: 0 0 20px; }
+legend { font-weight: 600; margin-bottom: 10px; padding: 0; }
+.opt { position: relative; display: block; margin-bottom: 8px; }
+.opt input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.opt span { display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--surface); }
+.opt span::before { content: ""; flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text); background: var(--surface); }
+.opt input:checked + span { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.opt input:checked + span::before { background: radial-gradient(circle, var(--text) 0 4px, var(--surface) 5px); }
+.opt input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; }
+.field { margin-bottom: 20px; }
+.field label, .field .lbl { display: block; font-weight: 600; margin-bottom: 8px; }
+.field input[type="text"], .field textarea { width: 100%; padding: 12px 14px; color: var(--text); background: var(--surface); border: 1.5px solid var(--line); border-radius: 10px; }
+.field textarea { min-height: 84px; resize: vertical; }
+.file-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.file-btn { font-weight: 500; padding: 10px 16px; cursor: pointer; color: var(--text); background: var(--surface); border: 1.5px dashed var(--muted); border-radius: 10px; }
+.file-name { color: var(--muted); font-size: 15px; word-break: break-all; }
+.thumb { display: none; margin-top: 12px; max-width: 100%; max-height: 170px; border-radius: 10px; border: 1px solid var(--line); }
+.error { color: var(--error); font-size: 15px; margin: -10px 0 16px; }
+.hint { margin: 12px 0 0; text-align: center; color: var(--muted); font-size: 15px; }
+
+/* Complaints */
+.search { display: flex; gap: 10px; margin-bottom: 20px; max-width: 520px; }
+.search input { flex: 1; min-width: 0; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text); }
+.list { display: grid; gap: 14px; max-width: 640px; }
+.cmp { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+.cmp.fresh { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.cmp-top { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.cmp-id { font-family: var(--font-head); font-size: 26px; letter-spacing: .03em; }
+.pill { font-weight: 600; font-size: 14.5px; padding: 3px 12px; border-radius: 999px; background: var(--accent-soft); border: 1px solid var(--accent); }
+.pill.done { background: rgba(30,123,69,.15); border-color: var(--ok); color: var(--ok); }
+.cmp dl { margin: 10px 0 14px; display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; font-size: 15.5px; }
+.cmp dt { color: var(--muted); }
+.cmp dd { margin: 0; word-break: break-word; }
+.track { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.track div { font-size: 13.5px; color: var(--muted); border-top: 5px solid var(--line); padding-top: 6px; line-height: 1.25; }
+.track div.on { border-top-color: var(--accent); color: var(--text); font-weight: 600; }
+.track div.fin { border-top-color: var(--ok); }
+.empty-box { max-width: 520px; padding: 22px; border: 1.5px dashed var(--line); border-radius: 14px; color: var(--muted); }
+.empty-box a { color: var(--text); font-weight: 600; }
+
+/* QR */
+.qr-box { display: flex; justify-content: center; padding: 18px; margin: 4px 0 14px; background: #fff; border: 1px solid var(--line); border-radius: 12px; }
+.qr-box img, .qr-box canvas { max-width: 100%; height: auto; }
+.qr-note { font-size: 15px; color: var(--muted); margin: 0 0 12px; }
+.qr-url { font-size: 13px; color: var(--muted); word-break: break-all; margin: 0 0 16px; }
+
+footer { max-width: 980px; margin: 0 auto; padding: 0 16px 28px; color: var(--muted); font-size: 14px; }
+@media (max-width: 720px) {
+  .hero, .two { grid-template-columns: 1fr; }
+  .brand small { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="#/home" aria-label="CityCare home">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="17" fill="#F2A900"/><path d="M11 24h12M17 24V12M17 12c0-3 3-4 6-4" stroke="#14213D" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="23" cy="10" r="2.4" fill="#14213D"/></svg>
+      <span><b>CityCare</b><small>Greenfield Municipal Corporation</small></span>
+    </a>
+    <nav aria-label="Main">
+      <a href="#/home" data-nav="home">Home</a>
+      <a href="#/report" data-nav="report">Report a problem</a>
+      <a href="#/complaints" data-nav="complaints">My complaints</a>
+      <a href="#/qr" data-nav="qr">Pole QR codes</a>
+    </nav>
+    <button class="bell" id="bell" aria-label="Notifications" aria-expanded="false">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+      <span class="badge" id="badge" hidden>0</span>
+    </button>
+  </div>
+</header>
+
+<section class="drawer" id="drawer" hidden aria-label="Notifications">
+  <h2>Notifications <button type="button" id="markRead">Mark all as read</button></h2>
+  <div id="noteList"></div>
+</section>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<main>
+
+  <!-- HOME -->
+  <div class="page" data-page="home">
+    <div class="hero">
+      <div>
+        <h1>Broken street light? Tell us in under a minute.</h1>
+        <p>Scan the QR code on the pole, pick the problem and send. We will notify you here as the repair moves along.</p>
+        <div class="cta-row">
+          <a class="btn" href="#/report">Report a street light</a>
+          <a class="btn ghost" href="#/complaints">Track a complaint</a>
+        </div>
+      </div>
+      <svg viewBox="0 0 320 300" role="img" aria-label="Illustration of a street light at dusk">
+        <rect width="320" height="300" fill="var(--sky)"/>
+        <polygon points="214,62 120,262 300,262" fill="#F2A900" opacity=".22"/>
+        <rect x="0" y="262" width="320" height="38" fill="var(--lamp)" opacity=".85"/>
+        <rect x="204" y="70" width="8" height="196" rx="3" fill="var(--lamp)"/>
+        <path d="M208 74c0-22 -26-28 -62-24" stroke="var(--lamp)" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <rect x="118" y="44" width="46" height="14" rx="6" fill="var(--lamp)"/>
+        <ellipse cx="141" cy="62" rx="16" ry="6" fill="#F2A900"/>
+        <rect x="190" y="150" width="36" height="36" rx="3" fill="#fff" stroke="var(--lamp)" stroke-width="2"/>
+        <g fill="#14213D"><rect x="195" y="155" width="9" height="9"/><rect x="212" y="155" width="9" height="9"/><rect x="195" y="172" width="9" height="9"/><rect x="209" y="169" width="4" height="4"/><rect x="216" y="176" width="5" height="5"/></g>
+      </svg>
+    </div>
+
+    <div class="two">
+      <div>
+        <h2 class="sec-title">How it works</h2>
+        <ol class="steps">
+          <li><b>Scan.</b> Each pole carries a QR code with its ID and location.</li>
+          <li><b>Report.</b> Choose what is wrong and add a photo if you can.</li>
+          <li><b>Get your ID.</b> A complaint ID is created as soon as you submit.</li>
+          <li><b>Follow updates.</b> Notifications tell you when a technician is assigned and when it is fixed.</li>
+        </ol>
+      </div>
+      <div>
+        <h2 class="sec-title">About this site</h2>
+        <p class="about">CityCare is the street lighting service of the fictional Greenfield Municipal Corporation. This is a demonstration website built for a computer science project. No real complaints are sent anywhere.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="page" data-page="report" hidden>
+    <div class="card">
+      <div class="card-head">
+        <h1>Street light report</h1>
+        <p>Tell us what is wrong with this light.</p>
+      </div>
+      <div class="card-body">
+        <dl class="plate">
+          <dt>Street light ID</dt><dd class="id" id="poleId">SL-001</dd>
+          <dt>Location</dt><dd id="poleLoc">Main Road, Pole 01</dd>
+        </dl>
+        <form id="reportForm" novalidate>
+          <fieldset>
+            <legend>Select problem</legend>
+            <label class="opt"><input type="radio" name="problem" value="Light not working"><span>Light not working</span></label>
+            <label class="opt"><input type="radio" name="problem" value="Light flickering"><span>Light flickering</span></label>
+            <label class="opt"><input type="radio" name="problem" value="Damaged wire"><span>Damaged wire</span></label>
+            <label class="opt"><input type="radio" name="problem" value="Damaged pole"><span>Damaged pole</span></label>
+            <label class="opt"><input type="radio" name="problem" value="Other"><span>Other</span></label>
+          </fieldset>
+          <div class="field" id="otherField" hidden>
+            <label for="otherText">Describe the problem</label>
+            <textarea id="otherText" placeholder="For example: light stays on during the day"></textarea>
+          </div>
+          <div class="field">
+            <span class="lbl">Upload photo (optional)</span>
+            <div class="file-row">
+              <input type="file" id="photo" accept="image/*" hidden>
+              <button type="button" class="file-btn" id="photoBtn">Choose file</button>
+              <span class="file-name" id="photoName">No file chosen</span>
+            </div>
+            <img class="thumb" id="thumb" alt="Selected photo preview">
+          </div>
+          <div class="error" id="err" role="alert"></div>
+          <button type="submit" class="btn block">Submit report</button>
+          <p class="hint">Your complaint ID is created after you submit.</p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLAINTS -->
+  <div class="page" data-page="complaints" hidden>
+    <h1 class="sec-title">My complaints</h1>
+    <form class="search" id="searchForm" role="search">
+      <input type="text" id="searchBox" placeholder="Search by complaint ID" aria-label="Search by complaint ID" autocomplete="off">
+    </form>
+    <div class="list" id="list"></div>
+  </div>
+
+  <!-- QR -->
+  <div class="page" data-page="qr" hidden>
+    <div class="card">
+      <div class="card-head">
+        <h1>QR code for a pole</h1>
+        <p>Print it and fix it to the pole.</p>
+      </div>
+      <div class="card-body">
+        <div class="field"><label for="qId">Street light ID</label><input type="text" id="qId" value="SL-001" autocomplete="off"></div>
+        <div class="field"><label for="qLoc">Location</label><input type="text" id="qLoc" value="Main Road, Pole 01" autocomplete="off"></div>
+        <div class="qr-box" id="qrBox" aria-label="QR code"></div>
+        <p class="qr-note">Scanning this code opens the report form with the ID and location already filled in.</p>
+        <p class="qr-url" id="qrUrl"></p>
+        <button type="button" class="btn block" id="previewBtn">Preview what a scan shows</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+<footer>Demo website for a student project. Greenfield Municipal Corporation is fictional.</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var KEY_C = 'cc_complaints', KEY_N = 'cc_notes';
+
+  /* ---------- storage (falls back to memory) ---------- */
+  var mem = {};
+  function load(k) {
+    try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch (e) { return mem[k] || []; }
+  }
+  function save(k, v) {
+    mem[k] = v;
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {}
+  }
+  var complaints = load(KEY_C);
+  var notes = load(KEY_N);
+
+  /* ---------- lifecycle of a complaint ---------- */
+  var STAGES = [
+    { at: 0,  label: 'Received',            msg: 'We received your report.' },
+    { at: 8,  label: 'Technician assigned', msg: 'A technician has been assigned to your complaint.' },
+    { at: 18, label: 'On the way',          msg: 'The technician is on the way to the pole.' },
+    { at: 30, label: 'Fixed',               msg: 'The street light has been repaired. Thank you for reporting it.' }
+  ];
+
+  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  /* ---------- notifications ---------- */
+  function updateBadge() {
+    var n = notes.filter(function (x) { return !x.read; }).length;
+    $('badge').textContent = n > 9 ? '9+' : n;
+    $('badge').hidden = n === 0;
+  }
+  function renderNotes() {
+    var box = $('noteList');
+    if (!notes.length) { box.innerHTML = '<p class="empty">No notifications yet. Submit a report to get one.</p>'; return; }
+    box.innerHTML = notes.slice().reverse().map(function (n) {
+      return '<div class="note' + (n.read ? '' : ' unread') + '"><p>' + esc(n.text) + '</p><small>' +
+        new Date(n.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '</small></div>';
+    }).join('');
+  }
+  function toast(title, text) {
+    var t = document.createElement('div');
+    t.className = 'toast';
+    t.setAttribute('role', 'status');
+    t.innerHTML = '<strong>' + esc(title) + '</strong><p>' + esc(text) + '</p><button class="x" aria-label="Dismiss">&times;</button>';
+    var kill = function () { if (t.parentNode) t.parentNode.removeChild(t); };
+    t.querySelector('.x').addEventListener('click', kill);
+    $('toasts').appendChild(t);
+    setTimeout(kill, 9000);
+  }
+  function systemNotify(title, body) {
+    try {
+      if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body: body });
+    } catch (e) {}
+  }
+  function notify(c, stage) {
+    var text = c.id + ': ' + STAGES[stage].msg;
+    notes.push({ text: text, time: Date.now(), read: false });
+    save(KEY_N, notes);
+    updateBadge(); renderNotes();
+    toast('Notification from CityCare', text);
+    systemNotify('CityCare', text);
+  }
+  $('bell').addEventListener('click', function () {
+    var d = $('drawer'); d.hidden = !d.hidden;
+    $('bell').setAttribute('aria-expanded', String(!d.hidden));
+    renderNotes();
+  });
+  $('markRead').addEventListener('click', function () {
+    notes.forEach(function (n) { n.read = true; });
+    save(KEY_N, notes); updateBadge(); renderNotes();
+  });
+  document.addEventListener('click', function (e) {
+    var d = $('drawer');
+    if (!d.hidden && !d.contains(e.target) && !$('bell').contains(e.target)) {
+      d.hidden = true; $('bell').setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  /* ---------- complaints list ---------- */
+  var freshId = null;
+  function renderList() {
+    var q = $('searchBox').value.trim().toUpperCase();
+    var items = complaints.filter(function (c) { return !q || c.id.indexOf(q) !== -1; }).slice().reverse();
+    var list = $('list');
+    if (!items.length) {
+      list.innerHTML = complaints.length
+        ? '<div class="empty-box">No complaint matches that ID.</div>'
+        : '<div class="empty-box">You have not sent a report yet. <a href="#/report">Report a street light</a> and it will show up here.</div>';
+      return;
+    }
+    list.innerHTML = items.map(function (c) {
+      var fin = c.stage === STAGES.length - 1;
+      var track = STAGES.map(function (s, i) {
+        var cls = i <= c.stage ? ' class="on' + (fin ? ' fin' : '') + '"' : '';
+        return '<div' + cls + '>' + s.label + '</div>';
+      }).join('');
+      return '<article class="cmp' + (c.id === freshId ? ' fresh' : '') + '">' +
+        '<div class="cmp-top"><span class="cmp-id">' + esc(c.id) + '</span><span class="pill' + (fin ? ' done' : '') + '">' + STAGES[c.stage].label + '</span></div>' +
+        '<dl><dt>Light</dt><dd>' + esc(c.pole) + '</dd><dt>Location</dt><dd>' + esc(c.loc) + '</dd>' +
+        '<dt>Problem</dt><dd>' + esc(c.problem) + '</dd><dt>Photo</dt><dd>' + esc(c.photo || 'None') + '</dd>' +
+        '<dt>Sent</dt><dd>' + new Date(c.at).toLocaleString() + '</dd></dl>' +
+        '<div class="track">' + track + '</div></article>';
+    }).join('');
+  }
+  $('searchBox').addEventListener('input', renderList);
+  $('searchForm').addEventListener('submit', function (e) { e.preventDefault(); });
+
+  /* Advance complaints by elapsed time; notify on each new stage */
+  function tick() {
+    var changed = false;
+    complaints.forEach(function (c) {
+      var el = (Date.now() - c.at) / 1000, target = c.stage;
+      for (var i = 0; i < STAGES.length; i++) if (el >= STAGES[i].at) target = Math.max(target, i);
+      while (c.stage < target) { c.stage++; changed = true; notify(c, c.stage); }
+    });
+    if (changed) { save(KEY_C, complaints); renderList(); }
+  }
+  setInterval(tick, 1000);
+
+  /* ---------- pole details + routing ---------- */
+  var params = new URLSearchParams(window.location.search);
+  var poleId = params.get('pole') || 'SL-001';
+  var poleLoc = params.get('loc') || 'Main Road, Pole 01';
+  function applyPole() { $('poleId').textContent = poleId; $('poleLoc').textContent = poleLoc; }
+  applyPole();
+  $('qId').value = poleId; $('qLoc').value = poleLoc;
+
+  function route() {
+    var page = (location.hash.replace('#/', '') || '').split('?')[0];
+    if (!page && params.get('pole')) page = 'report';   /* arrived by scanning a QR code */
+    if (['home', 'report', 'complaints', 'qr'].indexOf(page) === -1) page = 'home';
+    document.querySelectorAll('.page').forEach(function (p) { p.hidden = p.getAttribute('data-page') !== page; });
+    document.querySelectorAll('nav a').forEach(function (a) {
+      if (a.getAttribute('data-nav') === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    if (page === 'complaints') renderList();
+    if (page === 'qr') drawQR();
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', route);
+
+  /* ---------- QR code ---------- */
+  function drawQR() {
+    var id = $('qId').value.trim() || 'SL-001';
+    var loc = $('qLoc').value.trim() || 'Unknown location';
+    var url = window.location.origin + window.location.pathname + '?pole=' + encodeURIComponent(id) + '&loc=' + encodeURIComponent(loc);
+    $('qrUrl').textContent = url;
+    var box = $('qrBox'); box.innerHTML = '';
+    if (typeof QRCode === 'undefined') { box.textContent = 'The QR library could not load. Check your connection and reopen this page.'; return; }
+    new QRCode(box, { text: url, width: 232, height: 232, colorDark: '#14213D', colorLight: '#FFFFFF', correctLevel: QRCode.CorrectLevel.M });
+  }
+  $('qId').addEventListener('input', drawQR);
+  $('qLoc').addEventListener('input', drawQR);
+  $('previewBtn').addEventListener('click', function () {
+    poleId = $('qId').value.trim() || 'SL-001';
+    poleLoc = $('qLoc').value.trim() || 'Unknown location';
+    applyPole();
+    location.hash = '#/report';
+  });
+
+  /* ---------- report form ---------- */
+  var form = $('reportForm'), photoFile = null;
+  form.addEventListener('change', function (e) {
+    if (e.target.name === 'problem') { $('otherField').hidden = e.target.value !== 'Other'; $('err').textContent = ''; }
+  });
+  $('photoBtn').addEventListener('click', function () { $('photo').click(); });
+  $('photo').addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    photoFile = f || null;
+    $('photoName').textContent = f ? f.name : 'No file chosen';
+    var t = $('thumb');
+    if (f) { var r = new FileReader(); r.onload = function () { t.src = r.result; t.style.display = 'block'; }; r.readAsDataURL(f); }
+    else { t.style.display = 'none'; t.removeAttribute('src'); }
+  });
+
+  function newId() {
+    var d = new Date();
+    return 'CMP-' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') +
+      '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var sel = form.querySelector('input[name="problem"]:checked');
+    if (!sel) { $('err').textContent = 'Select a problem to continue.'; return; }
+    var problem = sel.value;
+    if (problem === 'Other') {
+      var extra = $('otherText').value.trim();
+      if (!extra) { $('err').textContent = 'Describe the problem so the technician knows what to look for.'; return; }
+      problem = 'Other: ' + extra;
+    }
+    /* ask for permission to show system notifications (needs a tap, which this is) */
+    try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (x) {}
+
+    var c = { id: newId(), pole: poleId, loc: poleLoc, problem: problem, photo: photoFile ? photoFile.name : null, at: Date.now(), stage: 0 };
+    complaints.push(c);
+    save(KEY_C, complaints);
+    freshId = c.id;
+
+    form.reset();
+    $('otherField').hidden = true; $('thumb').style.display = 'none';
+    $('photoName').textContent = 'No file chosen'; photoFile = null;
+
+    location.hash = '#/complaints';   /* take the person to the website */
+    notify(c, 0);                     /* and send the first notification */
+  });
+
+  /* ---------- start ---------- */
+  updateBadge();
+  route();
+  tick();
+})();
+</script>
+</body>
+</html>
